@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="82aae43831b147fe86a14c5da449b5b2" Name="Diagram1">
+        <EntityTypeShape EntityType="KidsFilmsModel.Domain" Width="1.5" PointX="3" PointY="3.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="KidsFilmsModel.DomainType" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="KidsFilmsModel.Episode" Width="1.5" PointX="8.25" PointY="2.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="KidsFilmsModel.Film" Width="1.5" PointX="6" PointY="3.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="KidsFilmsModel.Genre" Width="1.5" PointX="3.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="KidsFilmsModel.Provider" Width="1.5" PointX="0.75" PointY="3.75" IsExpanded="true" />
+        <AssociationConnector Association="KidsFilmsModel.FK_Domain_DomainType" ManuallyRouted="false" />
+        <AssociationConnector Association="KidsFilmsModel.FK_Domain_Provider" ManuallyRouted="false" />
+        <AssociationConnector Association="KidsFilmsModel.FK_Episode_Film" ManuallyRouted="false" />
+        <AssociationConnector Association="KidsFilmsModel.FK_Film_Genre" ManuallyRouted="false" />
+        <AssociationConnector Association="KidsFilmsModel.FK_Film_Provider" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

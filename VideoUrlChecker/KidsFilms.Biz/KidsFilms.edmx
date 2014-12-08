@@ -1,0 +1,429 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="KidsFilmsModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Domain">
+          <Key>
+            <PropertyRef Name="DomainId" />
+          </Key>
+          <Property Name="DomainId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProviderId" Type="int" Nullable="false" />
+          <Property Name="DomainTypeId" Type="int" Nullable="false" />
+          <Property Name="UrlBegin" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="UrlEnd" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="DomainType">
+          <Key>
+            <PropertyRef Name="DomainTypeId" />
+          </Key>
+          <Property Name="DomainTypeId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DomainTypeName" Type="nvarchar" MaxLength="20" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="150" />
+        </EntityType>
+        <EntityType Name="Episode">
+          <Key>
+            <PropertyRef Name="EpisodeId" />
+          </Key>
+          <Property Name="EpisodeId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Part" Type="int" />
+          <Property Name="EpisodeTitle" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="FilmId" Type="int" Nullable="false" />
+          <Property Name="Seconds" Type="int" Nullable="false" />
+          <Property Name="Url" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="PosterId" Type="nvarchar" MaxLength="20" />
+          <Property Name="StartTime" Type="int" Nullable="false" />
+          <Property Name="EndTime" Type="int" Nullable="false" />
+          <Property Name="CreateDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="PlayCount" Type="int" Nullable="false" />
+          <Property Name="IsFree" Type="bit" Nullable="false" />
+          <Property Name="IsActiveLink" Type="bit" Nullable="false" />
+          <Property Name="ModifyDate" Type="datetime2" Precision="7" />
+        </EntityType>
+        <EntityType Name="Film">
+          <Key>
+            <PropertyRef Name="FilmId" />
+          </Key>
+          <Property Name="FilmId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FilmTitle" Type="nvarchar" MaxLength="40" Nullable="false" />
+          <Property Name="LanguageId" Type="int" Nullable="false" />
+          <Property Name="ProviderId" Type="int" Nullable="false" />
+          <Property Name="GenreId" Type="int" Nullable="false" />
+          <Property Name="Year" Type="int" />
+          <Property Name="ThumbUrl" Type="nvarchar" MaxLength="20" />
+          <Property Name="IsPrivate" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Genre">
+          <Key>
+            <PropertyRef Name="GenreId" />
+          </Key>
+          <Property Name="GenreId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GenreName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="70" />
+        </EntityType>
+        <EntityType Name="Provider">
+          <Key>
+            <PropertyRef Name="ProviderId" />
+          </Key>
+          <Property Name="ProviderId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProviderName" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_Domain_DomainType">
+          <End Role="DomainType" Type="Self.DomainType" Multiplicity="1" />
+          <End Role="Domain" Type="Self.Domain" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DomainType">
+              <PropertyRef Name="DomainTypeId" />
+            </Principal>
+            <Dependent Role="Domain">
+              <PropertyRef Name="DomainTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Domain_Provider">
+          <End Role="Provider" Type="Self.Provider" Multiplicity="1" />
+          <End Role="Domain" Type="Self.Domain" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Provider">
+              <PropertyRef Name="ProviderId" />
+            </Principal>
+            <Dependent Role="Domain">
+              <PropertyRef Name="ProviderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Episode_Film">
+          <End Role="Film" Type="Self.Film" Multiplicity="1" />
+          <End Role="Episode" Type="Self.Episode" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Film">
+              <PropertyRef Name="FilmId" />
+            </Principal>
+            <Dependent Role="Episode">
+              <PropertyRef Name="FilmId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Film_Genre">
+          <End Role="Genre" Type="Self.Genre" Multiplicity="1" />
+          <End Role="Film" Type="Self.Film" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Genre">
+              <PropertyRef Name="GenreId" />
+            </Principal>
+            <Dependent Role="Film">
+              <PropertyRef Name="GenreId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Film_Provider">
+          <End Role="Provider" Type="Self.Provider" Multiplicity="1" />
+          <End Role="Film" Type="Self.Film" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Provider">
+              <PropertyRef Name="ProviderId" />
+            </Principal>
+            <Dependent Role="Film">
+              <PropertyRef Name="ProviderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="KidsFilmsModelStoreContainer">
+          <EntitySet Name="Domain" EntityType="Self.Domain" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DomainType" EntityType="Self.DomainType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Episode" EntityType="Self.Episode" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Film" EntityType="Self.Film" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Genre" EntityType="Self.Genre" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Provider" EntityType="Self.Provider" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Domain_DomainType" Association="Self.FK_Domain_DomainType">
+            <End Role="DomainType" EntitySet="DomainType" />
+            <End Role="Domain" EntitySet="Domain" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Domain_Provider" Association="Self.FK_Domain_Provider">
+            <End Role="Provider" EntitySet="Provider" />
+            <End Role="Domain" EntitySet="Domain" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Episode_Film" Association="Self.FK_Episode_Film">
+            <End Role="Film" EntitySet="Film" />
+            <End Role="Episode" EntitySet="Episode" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Film_Genre" Association="Self.FK_Film_Genre">
+            <End Role="Genre" EntitySet="Genre" />
+            <End Role="Film" EntitySet="Film" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Film_Provider" Association="Self.FK_Film_Provider">
+            <End Role="Provider" EntitySet="Provider" />
+            <End Role="Film" EntitySet="Film" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="KidsFilmsModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Domain">
+          <Key>
+            <PropertyRef Name="DomainId" />
+          </Key>
+          <Property Name="DomainId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProviderId" Type="Int32" Nullable="false" />
+          <Property Name="DomainTypeId" Type="Int32" Nullable="false" />
+          <Property Name="UrlBegin" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="UrlEnd" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="DomainType" Relationship="Self.FK_Domain_DomainType" FromRole="Domain" ToRole="DomainType" />
+          <NavigationProperty Name="Provider" Relationship="Self.FK_Domain_Provider" FromRole="Domain" ToRole="Provider" />
+        </EntityType>
+        <EntityType Name="DomainType">
+          <Key>
+            <PropertyRef Name="DomainTypeId" />
+          </Key>
+          <Property Name="DomainTypeId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DomainTypeName" Type="String" MaxLength="20" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Domain" Relationship="Self.FK_Domain_DomainType" FromRole="DomainType" ToRole="Domain" />
+        </EntityType>
+        <EntityType Name="Episode">
+          <Key>
+            <PropertyRef Name="EpisodeId" />
+          </Key>
+          <Property Name="EpisodeId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Part" Type="Int32" />
+          <Property Name="EpisodeTitle" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="FilmId" Type="Int32" Nullable="false" />
+          <Property Name="Seconds" Type="Int32" Nullable="false" />
+          <Property Name="Url" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="PosterId" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="StartTime" Type="Int32" Nullable="false" />
+          <Property Name="EndTime" Type="Int32" Nullable="false" />
+          <Property Name="CreateDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="PlayCount" Type="Int32" Nullable="false" />
+          <Property Name="IsFree" Type="Boolean" Nullable="false" />
+          <Property Name="IsActiveLink" Type="Boolean" Nullable="false" />
+          <Property Name="ModifyDate" Type="DateTime" Precision="7" />
+          <NavigationProperty Name="Film" Relationship="Self.FK_Episode_Film" FromRole="Episode" ToRole="Film" />
+        </EntityType>
+        <EntityType Name="Film">
+          <Key>
+            <PropertyRef Name="FilmId" />
+          </Key>
+          <Property Name="FilmId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FilmTitle" Type="String" MaxLength="40" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="LanguageId" Type="Int32" Nullable="false" />
+          <Property Name="ProviderId" Type="Int32" Nullable="false" />
+          <Property Name="GenreId" Type="Int32" Nullable="false" />
+          <Property Name="Year" Type="Int32" />
+          <Property Name="ThumbUrl" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="IsPrivate" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="Episode" Relationship="Self.FK_Episode_Film" FromRole="Film" ToRole="Episode" />
+          <NavigationProperty Name="Genre" Relationship="Self.FK_Film_Genre" FromRole="Film" ToRole="Genre" />
+          <NavigationProperty Name="Provider" Relationship="Self.FK_Film_Provider" FromRole="Film" ToRole="Provider" />
+        </EntityType>
+        <EntityType Name="Genre">
+          <Key>
+            <PropertyRef Name="GenreId" />
+          </Key>
+          <Property Name="GenreId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="GenreName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="70" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Film" Relationship="Self.FK_Film_Genre" FromRole="Genre" ToRole="Film" />
+        </EntityType>
+        <EntityType Name="Provider">
+          <Key>
+            <PropertyRef Name="ProviderId" />
+          </Key>
+          <Property Name="ProviderId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProviderName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="Domain" Relationship="Self.FK_Domain_Provider" FromRole="Provider" ToRole="Domain" />
+          <NavigationProperty Name="Film" Relationship="Self.FK_Film_Provider" FromRole="Provider" ToRole="Film" />
+        </EntityType>
+        <Association Name="FK_Domain_DomainType">
+          <End Role="DomainType" Type="Self.DomainType" Multiplicity="1" />
+          <End Role="Domain" Type="Self.Domain" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="DomainType">
+              <PropertyRef Name="DomainTypeId" />
+            </Principal>
+            <Dependent Role="Domain">
+              <PropertyRef Name="DomainTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Domain_Provider">
+          <End Role="Provider" Type="Self.Provider" Multiplicity="1" />
+          <End Role="Domain" Type="Self.Domain" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Provider">
+              <PropertyRef Name="ProviderId" />
+            </Principal>
+            <Dependent Role="Domain">
+              <PropertyRef Name="ProviderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Episode_Film">
+          <End Role="Film" Type="Self.Film" Multiplicity="1" />
+          <End Role="Episode" Type="Self.Episode" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Film">
+              <PropertyRef Name="FilmId" />
+            </Principal>
+            <Dependent Role="Episode">
+              <PropertyRef Name="FilmId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Film_Genre">
+          <End Role="Genre" Type="Self.Genre" Multiplicity="1" />
+          <End Role="Film" Type="Self.Film" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Genre">
+              <PropertyRef Name="GenreId" />
+            </Principal>
+            <Dependent Role="Film">
+              <PropertyRef Name="GenreId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Film_Provider">
+          <End Role="Provider" Type="Self.Provider" Multiplicity="1" />
+          <End Role="Film" Type="Self.Film" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Provider">
+              <PropertyRef Name="ProviderId" />
+            </Principal>
+            <Dependent Role="Film">
+              <PropertyRef Name="ProviderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="KidsFilmsEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Domain" EntityType="Self.Domain" />
+          <EntitySet Name="DomainType" EntityType="Self.DomainType" />
+          <EntitySet Name="Episode" EntityType="Self.Episode" />
+          <EntitySet Name="Film" EntityType="Self.Film" />
+          <EntitySet Name="Genre" EntityType="Self.Genre" />
+          <EntitySet Name="Provider" EntityType="Self.Provider" />
+          <AssociationSet Name="FK_Domain_DomainType" Association="Self.FK_Domain_DomainType">
+            <End Role="DomainType" EntitySet="DomainType" />
+            <End Role="Domain" EntitySet="Domain" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Domain_Provider" Association="Self.FK_Domain_Provider">
+            <End Role="Provider" EntitySet="Provider" />
+            <End Role="Domain" EntitySet="Domain" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Episode_Film" Association="Self.FK_Episode_Film">
+            <End Role="Film" EntitySet="Film" />
+            <End Role="Episode" EntitySet="Episode" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Film_Genre" Association="Self.FK_Film_Genre">
+            <End Role="Genre" EntitySet="Genre" />
+            <End Role="Film" EntitySet="Film" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Film_Provider" Association="Self.FK_Film_Provider">
+            <End Role="Provider" EntitySet="Provider" />
+            <End Role="Film" EntitySet="Film" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="KidsFilmsModelStoreContainer" CdmEntityContainer="KidsFilmsEntities">
+          <EntitySetMapping Name="Domain">
+            <EntityTypeMapping TypeName="KidsFilmsModel.Domain">
+              <MappingFragment StoreEntitySet="Domain">
+                <ScalarProperty Name="DomainId" ColumnName="DomainId" />
+                <ScalarProperty Name="ProviderId" ColumnName="ProviderId" />
+                <ScalarProperty Name="DomainTypeId" ColumnName="DomainTypeId" />
+                <ScalarProperty Name="UrlBegin" ColumnName="UrlBegin" />
+                <ScalarProperty Name="UrlEnd" ColumnName="UrlEnd" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DomainType">
+            <EntityTypeMapping TypeName="KidsFilmsModel.DomainType">
+              <MappingFragment StoreEntitySet="DomainType">
+                <ScalarProperty Name="DomainTypeId" ColumnName="DomainTypeId" />
+                <ScalarProperty Name="DomainTypeName" ColumnName="DomainTypeName" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Episode">
+            <EntityTypeMapping TypeName="KidsFilmsModel.Episode">
+              <MappingFragment StoreEntitySet="Episode">
+                <ScalarProperty Name="EpisodeId" ColumnName="EpisodeId" />
+                <ScalarProperty Name="Part" ColumnName="Part" />
+                <ScalarProperty Name="EpisodeTitle" ColumnName="EpisodeTitle" />
+                <ScalarProperty Name="FilmId" ColumnName="FilmId" />
+                <ScalarProperty Name="Seconds" ColumnName="Seconds" />
+                <ScalarProperty Name="Url" ColumnName="Url" />
+                <ScalarProperty Name="PosterId" ColumnName="PosterId" />
+                <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+                <ScalarProperty Name="EndTime" ColumnName="EndTime" />
+                <ScalarProperty Name="CreateDate" ColumnName="CreateDate" />
+                <ScalarProperty Name="PlayCount" ColumnName="PlayCount" />
+                <ScalarProperty Name="IsFree" ColumnName="IsFree" />
+                <ScalarProperty Name="IsActiveLink" ColumnName="IsActiveLink" />
+                <ScalarProperty Name="ModifyDate" ColumnName="ModifyDate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Film">
+            <EntityTypeMapping TypeName="KidsFilmsModel.Film">
+              <MappingFragment StoreEntitySet="Film">
+                <ScalarProperty Name="FilmId" ColumnName="FilmId" />
+                <ScalarProperty Name="FilmTitle" ColumnName="FilmTitle" />
+                <ScalarProperty Name="LanguageId" ColumnName="LanguageId" />
+                <ScalarProperty Name="ProviderId" ColumnName="ProviderId" />
+                <ScalarProperty Name="GenreId" ColumnName="GenreId" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="ThumbUrl" ColumnName="ThumbUrl" />
+                <ScalarProperty Name="IsPrivate" ColumnName="IsPrivate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Genre">
+            <EntityTypeMapping TypeName="KidsFilmsModel.Genre">
+              <MappingFragment StoreEntitySet="Genre">
+                <ScalarProperty Name="GenreId" ColumnName="GenreId" />
+                <ScalarProperty Name="GenreName" ColumnName="GenreName" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Provider">
+            <EntityTypeMapping TypeName="KidsFilmsModel.Provider">
+              <MappingFragment StoreEntitySet="Provider">
+                <ScalarProperty Name="ProviderId" ColumnName="ProviderId" />
+                <ScalarProperty Name="ProviderName" ColumnName="ProviderName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
