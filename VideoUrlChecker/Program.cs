@@ -6,6 +6,8 @@ using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Contexts;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,76 +25,98 @@ namespace VideoUrlChecker
             {
                 Console.WriteLine();
                 Console.WriteLine();
-                Console.WriteLine("Choose an option:\n1\tGet All Films\n2\tGet All Episodes\n3\tLook for dead video links\n4\tCheckSingleVideo\n0\tExit");
+                Console.WriteLine("Choose an option:\n1\tGet All Films\n2\tGet All Episodes\n3\tLook For Dead Video Links\n4\tDelete Broken Video Links\n5\tCheck Single Video Link\n0\tExit");
                 Console.WriteLine();
                 var s = Console.ReadLine();
                 Console.WriteLine();
                 var switchCase = int.Parse(s);
-                var kf = new KFservice();
                 switch (switchCase)
                 {
                     case 0:
                         Environment.Exit(0);
                         break;
                     case 1:
-                        var taskFilms = kf.GetAllFilmsAsync();
+                        var taskFilms = KFservice.GetAllFilmsAsync();
                         //while(!taskFilms.IsCompleted)
                         while (!taskFilms.IsCompleted)
                         {
-                            ShowLoader(" Films  ");
+                            ShowLoader(" Loading Films... ");
                         }
                         break;
                     case 2:
-                        var taskEpisodes = kf.GetAllEpisodesAsync();
+                        var taskEpisodes = KFservice.GetAllEpisodesAsync();
                         while (!taskEpisodes.IsCompleted)
                         {
-                            ShowLoader(" Episodes  ");
+                            ShowLoader(" Loading Episodes...  ");
                         }
                         break;
                     case 3:
-                        //var taskLinksChecker = kf.CheckAllVideoLinksAsync();
-                        //while (!taskLinksChecker.IsCompleted)
-                        //{
-                        //    ShowLoader(" Video Links  ");
-                        //}
-                        kf.CheckAllVideoLinks();
+                        var taskLinksChecker = KFservice.CheckAllVideoLinksAsync();
+                        while (!taskLinksChecker.IsCompleted)
+                        {
+                            ShowLoader(" Checking Video Links... ");
+                        }
                         break;
                     case 4:
-                        Console.WriteLine("VideoId to check");
+                        //KFservice.DeleteBrokenEpisodeVideoLinks();
+                        var taskLinksDeleter = KFservice.DeleteBrokenEpisodeVideoLinksAsync();
+                        while (!taskLinksDeleter.IsCompleted)
+                        {
+                            Console.WriteLine(taskLinksDeleter.Status);
+                            ShowLoader(" Deleting Broken Video Links...  ");
+                        }
+                        Console.WriteLine();
+                        Console.WriteLine(taskLinksDeleter.Status);
+                        List<Episode> deletedEpisodes = taskLinksDeleter.Result;
+                        
+                        if (deletedEpisodes == null)
+                        {
+                            Console.WriteLine("No episodes to delete");
+                        }
+                        else
+                        {
+                            Console.WriteLine(deletedEpisodes.Count() + " episodes were deleted:");
+                            KFservice.SetConsolColorBody();
+                            var printDeletedEpisodes = String.Format("\t{0,-50}{1,-50}{2,-50}", deletedEpisodes.Select(e => e.EpisodeTitle), deletedEpisodes.Select(e => e.Url), deletedEpisodes.Select(e => e.Film.FilmTitle));
+                            Console.WriteLine(printDeletedEpisodes);
+                        }
+                        break;
+                    case 5:
+                        Console.WriteLine("VideoId To Check");
                         var input = Console.ReadLine();
                         var provider = "vimeo";
                         //var vidId = int.Parse(input);
-                        var output = kf.RemoteVideoExists(provider, input);
+                        var output = KFservice.CheckVideoLinkResponseStatus(provider, input);
                         Console.WriteLine(output.ToString());
                         break;
                 }
             }
         }
 
-        private static void ShowLoader(string entity)
+        private static void ShowLoader(string message)
         {
-            Console.Write("\r {0} ", "Loading" + entity + "--");
+            Console.Write("\r {0} ", message + "--");
             Thread.Sleep(250);
-            Console.Write("\r {0} ", "Loading" + entity + "\\");
+            Console.Write("\r {0} ", message + "\\ ");
             Thread.Sleep(250);
-            Console.Write("\r {0} ", "Loading" + entity + "|");
+            Console.Write("\r {0} ", message + "| ");
             Thread.Sleep(250);
-            Console.Write("\r {0} ", "Loading" + entity + "/");
+            Console.Write("\r {0} ", message + "/ ");
             Thread.Sleep(250);
         }
     }
 
-    class KFservice
+    public class KFservice
     {
-        private readonly KidsFilmsEntities _context = new KidsFilmsEntities();
+        private static readonly KidsFilmsEntities context = new KidsFilmsEntities();
 
-        public async Task GetAllFilmsAsync()
+        public static async Task GetAllFilmsAsync()
         {
             Console.WriteLine("Please wait, calling database...");
             Console.WriteLine("-----------------------------------------");
             Console.WriteLine();
 
-            var films = await _context.Film.ToListAsync();
+            var films = await context.Film.ToListAsync();
             Console.WriteLine();
             Console.WriteLine();
             SetConsolColorSuccess();
@@ -113,25 +137,25 @@ namespace VideoUrlChecker
             Console.WriteLine();
         }
 
-        public async Task GetAllEpisodesAsync()
+        public static async Task GetAllEpisodesAsync()
         {
             Console.WriteLine("Please wait, calling database...");
             Console.WriteLine("-----------------------------------------");
             Console.WriteLine();
 
-            var episodes = await _context.Episode.ToListAsync();
+            var episodes = await context.Episode.ToListAsync();
             Console.WriteLine();
             Console.WriteLine();
             SetConsolColorSuccess();
             Console.WriteLine(" Data recieved.");
             Console.WriteLine();
             SetConsolColorHeader();
-            var header = String.Format("{0,-50}{1,-50}{2,-50}", "EpisodeTitle", "Url Id", "Is Private");
+            var header = String.Format("\t{0,-50}{1,-50}{2,-50}", "EpisodeTitle", "Url Id", "Is Private");
             Console.WriteLine(header);
             Console.ResetColor();
             foreach (var episode in episodes)
             {
-                var responseBody = String.Format("{0,-50}{1,-50}{2,-50}", episode.EpisodeTitle, episode.Url, episode.IsActiveLink);
+                var responseBody = String.Format("\t{0,-50}{1,-50}{2,-50}", episode.EpisodeTitle, episode.Url, episode.IsActiveLink);
                 SetConsolColorBody();
                 Console.WriteLine(responseBody);
             }
@@ -139,28 +163,37 @@ namespace VideoUrlChecker
             Console.WriteLine();
         }
 
-        public void CheckAllVideoLinks()
+        //********************Find Broken Links**********************************************************
+        public static async Task CheckAllVideoLinksAsync()
         {
-            int counter = 0;
+            int counterChecked = 0;
+            int counterDead = 0;
             Console.WriteLine("Please wait, marking dead video links...");
             Console.WriteLine("-----------------------------------------");
             Console.WriteLine();
-            var episodes = _context.Episode.ToList();
+            var episodes = await context.Episode.ToListAsync();
+            var count = episodes.Count();
             foreach (var episode in episodes)
             {
-                counter++;
-                Console.Write("\r {0} ", counter);
-                var videoCheck = RemoteVideoExists(episode.Film.Provider.ProviderName, episode.Url);
+                counterChecked++;
+                //var percent = (counterChecked/count)*100;
+                //Console.Write("\r {0} links checked", counterChecked);
+                var videoCheck = CheckVideoLinkResponseStatus(episode.Film.Provider.ProviderName, episode.Url);
 
                 if (videoCheck.HasValue && (bool)!videoCheck)
                 {
-                    Console.WriteLine("Found dead link: episodeTitle = " + episode.EpisodeTitle);
-                    SetIsActive(episode.EpisodeId);
+                    counterDead++;
+                    await MarkLinkAsBrokenAsync(episode.EpisodeId);
                 }
             }
+            Console.WriteLine();
+            Console.WriteLine("{0} video links were checked. ", counterChecked);
+            Console.WriteLine();
+            Console.WriteLine("{0} video links marked as inactive. ", counterDead);
+            Console.ResetColor();
         }
 
-        public bool? RemoteVideoExists(string provider, string videoId)
+        public static bool? CheckVideoLinkResponseStatus(string provider, string videoId)
         {
             string url = string.Empty;
 
@@ -200,30 +233,77 @@ namespace VideoUrlChecker
             return exists;
         }
 
-        public void SetIsActive(int episodeId)
+        public static async Task MarkLinkAsBrokenAsync(int episodeId)
         {
-
-            var episode = _context.Episode.Find(episodeId);
+            var episode = await context.Episode.FindAsync(episodeId);
             episode.IsActiveLink = false;
-            _context.Entry(episode).State = EntityState.Modified;
-            _context.SaveChanges();
-
-            var output = String.Format("{0,-50}{1,-50}{2,-50}", episode.EpisodeTitle, episode.Url, episode.IsActiveLink);
+            context.Entry(episode).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            var output = String.Format("\t{0,-35}{1,-35}{2,-35}{3,-35}{4,-35}", episode.EpisodeId, episode.EpisodeTitle, episode.Film.FilmTitle, episode.Url, episode.IsActiveLink);
             SetConsolColorBody();
             Console.WriteLine(output);
         }
+        //************************************************************************************
 
-        private void SetConsolColorHeader()
+        //************************Delete Broken Links******************************************
+        //public static async Task DeleteBrokenEpisodeVideoLinksAsync()
+        //{
+        //    var episodesToDelete = context.Episode.Where(e => !e.IsActiveLink);
+        //    if (episodesToDelete.Count() != 0)
+        //    {
+        //        foreach (var episode in episodesToDelete)
+        //        {
+        //            await DeleteAsync(episode.EpisodeId);
+        //        }
+        //    }
+        //}
+        public static async Task<List<Episode>> DeleteBrokenEpisodeVideoLinksAsync()
+        {
+            var episodesToDelete = context.Episode.Where(e => e.IsActiveLink == false);
+            if (!episodesToDelete.Any()) return (null);
+            foreach (var episode in episodesToDelete)
+            {
+                context.Episode.Remove(episode);
+            }
+            await context.SaveChangesAsync();
+            await return (episodesToDelete.ToListAsync());
+        }
+        //public static async Task<string> DeleteAsync(int id)
+        //{
+        //    Episode episode = await context.Episode.FindAsync(id);
+        //    var title = episode.EpisodeTitle;
+        //    context.Episode.Remove(episode);
+        //    await context.SaveChangesAsync();
+        //    Console.WriteLine("Episode {0} deleted successfully", title);
+        //    return String.Format("Episode {0} deleted successfully", title);
+        //}
+        //public static void DeleteBrokenEpisodeVideoLinks()
+        //{
+        //    var episodesToDelete = context.Episode.Where(e => e.IsActiveLink == false);
+        //    if (episodesToDelete.Count() != 0)
+        //    {
+        //        foreach (var episode in episodesToDelete)
+        //        {
+        //            var title = episode.EpisodeTitle;
+        //            context.Episode.Remove(episode);
+        //            Console.WriteLine("Episode {0} deleted successfully", title);
+        //        }
+        //        context.SaveChanges();
+        //    }
+        //}
+
+        //************************************************************************************
+        public static void SetConsolColorHeader()
         {
             Console.BackgroundColor = ConsoleColor.DarkGray;
             Console.ForegroundColor = ConsoleColor.White;
         }
-        private void SetConsolColorBody()
+        public static void SetConsolColorBody()
         {
             Console.BackgroundColor = ConsoleColor.Gray;
             Console.ForegroundColor = ConsoleColor.Black;
         }
-        private void SetConsolColorSuccess()
+        public static void SetConsolColorSuccess()
         {
             Console.ForegroundColor = ConsoleColor.Green;
         }
