@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +16,22 @@ namespace VideoUrlChecker
         {
             Console.WriteLine("*************** Press any key start****************************");
             Console.ReadKey();
+            Console.WriteLine("");
             while (true)
             {
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine("Choose an option:\n1\tGet All Films\n2\tGet All Episodes\n3\tLook For Dead Video Links\n4\tDelete Broken Video Links\n5\tCheck Single Video Link\n0\tExit");
+                Console.WriteLine(":::::::::::::::::::::::::::::::::::::::::::");
+                Console.WriteLine(":    Kids Films Maintenance Suite         :");
+                Console.WriteLine(":::::::::::::::::::::::::::::::::::::::::::");
+                Console.WriteLine(":                                         :");
+                Console.WriteLine(": 1\tGet All Films                     :");
+                Console.WriteLine(": 2\tGet All Episodes                  :");
+                Console.WriteLine(": 3\tLook For Broken Video Links       :");
+                Console.WriteLine(": 4\tDelete Broken Video Links         :");
+                Console.WriteLine(": 5\tLook For Films Without Episodes   :");
+                Console.WriteLine(": 6\tDelete Films Without Episodes     :");
+                Console.WriteLine(": 7\tCheck Single Video Link           :");
+                Console.WriteLine(": 0\tExit                              :");
+                Console.WriteLine("__________________________________________:");
                 Console.WriteLine();
                 var s = Console.ReadLine();
                 Console.WriteLine();
@@ -63,6 +70,7 @@ namespace VideoUrlChecker
                         Console.ResetColor();
                         Console.WriteLine("\n");
                         Console.WriteLine("Films in total: " + filmList.Count());
+                        Console.WriteLine("\n");
                         break;
                     case 2:
                         var taskEpisodes = KFservice.GetAllEpisodesAsync();
@@ -92,16 +100,17 @@ namespace VideoUrlChecker
                         Console.ResetColor();
                         Console.WriteLine("\n");
                         Console.WriteLine("Episodes in total: " + episodeList.Count());
+                        Console.WriteLine("\n");
                         break;
                     case 3:
                         var taskLinksChecker = KFservice.CheckAllVideoLinksAsync();
                         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                         Console.WriteLine("Please wait, looking for broken video links...");
                         Console.WriteLine("----------------------------------------");
-                      
+
                         taskLinksChecker.Wait();
                         stopwatch.Stop();
-                        Console.WriteLine("Time elapsed while scanning: {0}",stopwatch.Elapsed);
+                        Console.WriteLine("Time elapsed while scanning: {0}", stopwatch.Elapsed);
                         Console.WriteLine();
                         var markedEpisodes = taskLinksChecker.Result;
 
@@ -115,14 +124,14 @@ namespace VideoUrlChecker
                         {
                             Console.WriteLine("There are no episodes to mark for delete");
                         }
+                        Console.WriteLine("\n");
                         break;
                     case 4:
                         var taskLinksDeleter = KFservice.DeleteBrokenEpisodeVideoLinksAsync();
-                        Console.WriteLine("Please wait,deleting broken video links...");
-                        Console.WriteLine("------------------------------------------");
+                        Console.WriteLine("Please wait, deleting broken video links...");
+                        Console.WriteLine("-------------------------------------------");
                         while (!taskLinksDeleter.IsCompleted)
                         {
-                            Console.WriteLine(taskLinksDeleter.Status);
                             ShowLoader(" Deleting In Progress...  ");
                         }
                         Console.WriteLine("\n");
@@ -140,16 +149,83 @@ namespace VideoUrlChecker
                         {
                             Console.WriteLine("No episodes to delete");
                         }
+                        Console.WriteLine("\n");
                         break;
                     case 5:
-                        Console.WriteLine("VideoId To Check");
-                        var input = Console.ReadLine();
+                        var taskFilmsNoEpisodes = KFservice.GetFilmsWithoutEpisodes();
+                        Console.WriteLine("Please wait, calling database to get all films without episodes...");
+                        Console.WriteLine("------------------------------------------------------------------");
+                        Console.WriteLine();
+                        while (!taskFilmsNoEpisodes.IsCompleted)
+                        {
+                            ShowLoader(" Looking For Films... ");
+                        }
+                        Console.WriteLine();
+                        Console.WriteLine(taskFilmsNoEpisodes.Status);
+                        var filmListNoEpisodes = taskFilmsNoEpisodes.Result;
+                        Console.WriteLine();
+                        if (filmListNoEpisodes != null)
+                        {
+                            KFservice.SetConsolColorSuccess();
+                            Console.WriteLine(" Data recieved.");
+                            Console.WriteLine();
+                            KFservice.SetConsolColorHeader();
+                            var headerFilmNoEpisodes = String.Format("\t{0,-50}{1,-50}{2,-50}", "FilmTitle", "Url Id", "Is Private");
+                            Console.WriteLine(headerFilmNoEpisodes);
+                            foreach (var film in filmListNoEpisodes)
+                            {
+                                var responseBody = String.Format("\t{0,-50}{1,-50}{2,-50}", film.FilmTitle, film.ThumbUrl,
+                                    film.IsPrivate);
+                                KFservice.SetConsolColorBody();
+                                Console.WriteLine(responseBody);
+                            }
+                            Console.ResetColor();
+                            Console.WriteLine("\n");
+                            Console.WriteLine("Found " + filmListNoEpisodes.Count() + " films with no episodes");
+                            Console.WriteLine("\n");
+                        }
+                        else
+                        {
+                            Console.WriteLine("No films without episodes found!");
+                        }
+                        Console.WriteLine("\n");
+                        break;
+                    case 6:
+                        var taskEmptyFilmsDeleter = KFservice.DeleteFilmsWithoutEpisodesAsync();
+                        Console.WriteLine("Please wait, deleting films without episodes...");
+                        Console.WriteLine("----------------------------------------------");
+                        while (!taskEmptyFilmsDeleter.IsCompleted)
+                        {
+                            ShowLoader(" Deleting In Progress...  ");
+                        }
+                        Console.WriteLine("\n");
+                        Console.WriteLine(taskEmptyFilmsDeleter.Status);
+                        Console.WriteLine();
+                        var deletedFilms = taskEmptyFilmsDeleter.Result;
+
+                        if (deletedFilms != null)
+                        {
+                            KFservice.SetConsolColorBody();
+                            Console.WriteLine(deletedFilms);
+                            Console.ResetColor();
+                        }
+                        else
+                        {
+                            Console.WriteLine("No Films to delete");
+                        }
+                        Console.WriteLine("\n");
+                        break;
+                    case 7:
                         Console.WriteLine("Enter provider youtube/vimeo ?");
                         var provider = Console.ReadLine();
-                        //var vidId = int.Parse(input);
+                        Console.WriteLine("VideoId To Check");
+                        var input = Console.ReadLine();
                         var output = KFservice.CheckVideoLinkResponseStatus(provider, input);
+                        Console.WriteLine();
                         Console.WriteLine(output.ToString());
+                        Console.WriteLine("\n");
                         break;
+
                 }
             }
         }
@@ -174,6 +250,34 @@ namespace VideoUrlChecker
         public static async Task<List<Film>> GetAllFilmsAsync()
         {
             return await context.Film.ToListAsync();
+        }
+
+        public static async Task<List<Film>> GetFilmsWithoutEpisodes()
+        {
+            var emptyFilms = context.Film.Where(f => f.Episode.Count(e => e.IsActiveLink) == 0);
+            if (!emptyFilms.Any()) return (null);
+            return await emptyFilms.ToListAsync();
+        }
+
+        public static async Task<string> DeleteFilmsWithoutEpisodesAsync()
+        {
+            var deletedFilms = new StringBuilder();
+            var filmsToDelete = context.Film.Where(f => f.Episode.Count(e => e.IsActiveLink) == 0);
+            if (!filmsToDelete.Any()) return (null);
+            deletedFilms.Append(filmsToDelete.Count()).Append(" films deleted:");
+            deletedFilms.AppendLine("\n");
+            deletedFilms.AppendFormat("\t{0,-35} {1,-35} {2,-35} \t", "Film Title", "Thumb Id", "Provider");
+            deletedFilms.AppendLine();
+            deletedFilms.AppendLine("\t----------------------------------------------------------------------------------------------------------- \t");
+            foreach (var film in filmsToDelete)
+            {
+                deletedFilms.AppendFormat("\t{0,-35} {1,-35} {2,-35}\t ", film.FilmTitle, film.ThumbUrl, film.Provider.ProviderName);
+                deletedFilms.AppendLine();
+                context.Film.Remove(film);
+            }
+
+            await context.SaveChangesAsync();
+            return deletedFilms.ToString();
         }
 
         public static async Task<List<Episode>> GetAllEpisodesAsync()
