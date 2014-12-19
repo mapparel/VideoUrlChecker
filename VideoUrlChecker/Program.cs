@@ -14,6 +14,11 @@ namespace VideoUrlChecker
     {
         static void Main(string[] args)
         {
+            //********************QUARTZ TASK***********************************************************************************
+            Common.Logging.LogManager.Adapter = new Common.Logging.Simple.ConsoleOutLoggerFactoryAdapter { Level = Common.Logging.LogLevel.Info };
+            JobScheduler.Start();
+            //********************************************************************************************************************
+
             Console.WriteLine("*************** Press any key start****************************");
             Console.ReadKey();
             Console.WriteLine("");
@@ -327,7 +332,8 @@ namespace VideoUrlChecker
 
             if (counterDead == 0) return (null);
             markedEpisodes.Insert(0, counterChecked);
-            int pos = markedEpisodes.ToString().IndexOf("links") + 6 + Environment.NewLine.Length;
+            // ReSharper disable once StringIndexOfIsCultureSpecific.1
+            var pos = markedEpisodes.ToString().IndexOf("links") + 6 + Environment.NewLine.Length;
             markedEpisodes.Insert(pos, counterDead);
             return markedEpisodes.ToString();
         }

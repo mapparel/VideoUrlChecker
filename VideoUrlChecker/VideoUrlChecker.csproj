@@ -32,11 +32,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Common.Logging">
+      <HintPath>..\packages\Common.Logging.2.3.1\lib\net40\Common.Logging.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer">
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Quartz">
+      <HintPath>..\packages\Quartz.2.3\lib\net40\Quartz.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -50,6 +56,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FilmFetcher.cs" />
+    <Compile Include="HelloJob.cs" />
+    <Compile Include="JobScheduler.cs" />
     <Compile Include="KidsFilms.Biz\Domain.cs">
       <DependentUpon>KidsFilms.tt</DependentUpon>
     </Compile>
@@ -83,6 +92,7 @@
     <Compile Include="KidsFilms.Biz\Provider.cs">
       <DependentUpon>KidsFilms.tt</DependentUpon>
     </Compile>
+    <Compile Include="LinksChecker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -92,6 +102,9 @@
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>KidsFilms.Designer.cs</LastGenOutput>
     </EntityDeploy>
+    <None Include="job_scheduling_data_2_0.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="KidsFilms.Biz\KidsFilms.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>KidsFilms.edmx</DependentUpon>
