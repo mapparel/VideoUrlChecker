@@ -15,8 +15,8 @@ namespace VideoUrlChecker
         static void Main(string[] args)
         {
             //********************QUARTZ TASK***********************************************************************************
-            Common.Logging.LogManager.Adapter = new Common.Logging.Simple.ConsoleOutLoggerFactoryAdapter { Level = Common.Logging.LogLevel.Info };
-            JobScheduler.Start();
+            //Common.Logging.LogManager.Adapter = new Common.Logging.Simple.ConsoleOutLoggerFactoryAdapter { Level = Common.Logging.LogLevel.Info };
+            //JobScheduler.Start();
             //********************************************************************************************************************
 
             Console.WriteLine("*************** Press any key start****************************");
@@ -341,11 +341,13 @@ namespace VideoUrlChecker
         public static bool? CheckVideoLinkResponseStatus(string provider, string videoId)
         {
             string url = string.Empty;
+            var exists = false;
 
             switch (provider)
             {
                 case "youtube":
-                    url = String.Format("http://gdata.youtube.com/feeds/api/videos/{0}", videoId);
+                    //url = String.Format("http://gdata.youtube.com/feeds/api/videos/{0}", videoId); => Cease to work in 2015
+                    url = String.Format("http://img.youtube.com/vi/{0}/0.jpg", videoId);
                     break;
                 case "vimeo":
                     url = String.Format("http://vimeo.com/api/v2/video/{0}.json", videoId);
@@ -360,7 +362,6 @@ namespace VideoUrlChecker
             request.Timeout = 5000; // milliseconds
             request.AllowAutoRedirect = false;
 
-            var exists = false;
             try
             {
                 response = (HttpWebResponse)request.GetResponse();
